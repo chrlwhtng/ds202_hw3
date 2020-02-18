@@ -1,0 +1,78 @@
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Tips at Restaurants
+
+In this homework we will use the `tips` data set. This data set is part of the `reshape2` package. You can load the data set by executing the command:
+```{r}
+data(tips, package="reshape2")
+```
+If you do not have available the package `reshape2`, issue `install.packages('reshape2')` to install it. The information contained in the data is collected by one waiter, who recorded over the course of a season information about each tip he received working in one restaurant. See `?tips` for a description of all of the variables. 
+
+**Submission instructions**: Create a folder named `ds202_hw3`, and name the RMarkDown file `hw3.Rmd`  which should include your solutions under this folder. For submission, create a GitHub repository named `ds202_hw3` under your GitHub account, and push both `hw3.Rmd` and the knitted `hw3.html` before the deadline. I will assume you use the same GitHub username as for your HW2 submission. The latest version of your homework appearing on GitHub before the deadline is graded. *It is crucial to follow the exact folder structure and file names*, so that your homework can be reproduced and graded by an automated script. This homework is **due on Feb 19** before class.
+
+1.  How many parties did the waiter serve? Store the number in `numParty` and print.
+```{r}
+numParty <- nrow(tips)
+numParty
+```
+2. What are the types of variables in the data frame `tips`? Include the code and also explain verbally.
+```{r}
+labels <- names(tips)
+labels
+```
+**The different variables are various aspects or traits about the person who tipped the waiter. These traits include the gender of the tipper, when the tip occured, if the tipper was a smoker, how big their bill was, and how big their party was.**
+
+3. Create a vector named `day` containing the day of visits in `tips`. The factor levels should be ordered from Thursday to Sunday. Print the variable.
+```{r}
+day <- c('Thur', 'Fri', 'Sat', 'Sun')
+day
+```
+4. Create a data frame named `female5` containing the meal paid by a female payer in a party with size greater than or euqal to 5. Print the data frame.
+```{r}
+female5 <- tips[tips$sex == 'Female' & tips$size >= 5, ]
+female5
+```
+5. How does the tipping amount (`tip`) depend on the overall bill (`total_bill`)? Use the `ggplot2` package to make a chart. Describe the relationship in words. 
+```{r}
+library(ggplot2)
+ggplot(tips, aes(x=total_bill, y=tip)) + geom_point() + geom_smooth(method = 'lm', color='red') + xlab('Total Bill ($)') + ylab('Tip Amount ($)')
+```
+
+**The scatterplot shows that as total bill amount increases, so does the tip earned by the waiter. The relationship between the two variables shows that on average, according to the line of best fit, tippers usually tip between 10 and 20% of their total bill amount.**
+
+6. Describe at least two types of anomalies in the previous plot. What do they mean?
+**There are a few anomalies in the previous plot. For one thing, the correlation between the two variables is not super strong, resulting in many outlier-like points, like someone tipping $5 on a less than $10 bill. Instances like this change the overall trend between the two variables, since they vary greatly from the overall trend. A second anomaly with the plot would be the string of points that look like a straight horizontal line between the $10 and $20 on the x-axis. A good explanation/theory for this line would be that it is likely at the $2 tip mark, which would be common among customers (since it requires only 2 $1 bills) to tip their waiter.**
+
+7. Introduce a variable `tiprate` into the data set which stands for the rate of tips. What is the average rate for tips? Explain verbally. 
+```{r}
+#Based on the first few rows, I am assuming that the tip is not included in the "total_bill" column, since many "tip" + "total_bill" amounts add up to round numbers
+head(tips)
+tips$tiprate <- tips$tip / (tips$total_bill)
+mean(tips$tiprate)
+```
+**The average tip rate is just over 16%, which is in line with my interpretation of the trend-line from two questions ago.**
+
+8. Make a boxplot of the tip rate by time. The x-axis should be ordered by lunch and then dinner. Use `ggplot2` to make a chart. Verbally explain the chart.
+```{r}
+ggplot(tips, aes(x=time, y=tiprate)) + geom_boxplot() + scale_x_discrete(limits=c('Lunch', 'Dinner'))
+```
+
+**This chart creates a different five-number-summary for the different times that the waiter receives tips. This is used to compare how different meals result in different tips for the waiter.**
+
+9. How does smoking behavior and gender of the person who pays impact the relationship between tip and total bill? Find a visualization that incorporates all four variables. Interpret the result.
+```{r}
+ggplot(tips, aes(x=total_bill, y=tip)) + geom_point() + facet_grid(sex ~ smoker) + geom_smooth(method = "lm", color='green')
+```
+
+**This plot is interesting for a few reasons. For one, I found it interesting that smokers tip in a less predictable way. The correlation between tips and total bill is stronger (in both males and females) with non-smokers. Also, it appears that males tip the most of the four groups, especially non-smokers.**
+
+10. Use ggplot2 to find a graphical summary of the relationship between day of the week and gender of the person paying the bill. What can you say about this relationship?
+```{r}
+ggplot(tips, aes(x=total_bill, y=tip)) + geom_point() + facet_grid(day ~ sex) + geom_smooth(method = 'lm', color='orange')
+```
+
+**The first thing I notice about this plot is the disparity in number of points between the different sections. Men, for instance, appear to eat out much more often on weekends than weekdays. Also, it is interesting to note that many more people eat out on Thursdays than Fridays, which I wouldn't have expected. Lastly, women have a stronger correlation on average between tips and total bill than men do, regardless of day of the week.**
+
+Note: your submission is supposed to be fully reproducible, i.e. the TA and I will 'knit' your submission in RStudio. 
